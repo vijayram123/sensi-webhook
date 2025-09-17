@@ -37,12 +37,17 @@ def adjust_temp():
     # Filter only accepted reservations
     accepted_rows = [r for r in rows if r.get("Status", "").strip().lower() == "accepted"]
 
+    def parse_date(date_str):
+        """Extract date portion before space and convert to date object."""
+        date_part = date_str.strip().split(" ")[0]
+        return datetime.strptime(date_part, "%Y-%m-%d").date()
+
     checkin_today = any(
-        datetime.strptime(r["Check-in"], "%Y-%m-%d").date() == today
+        parse_date(r["Check-in"]) == today
         for r in accepted_rows
     )
     checkout_today = any(
-        datetime.strptime(r["Check-out"], "%Y-%m-%d").date() == today
+        parse_date(r["Check-out"]) == today
         for r in accepted_rows
     )
     same_day_turnover = checkin_today and checkout_today
