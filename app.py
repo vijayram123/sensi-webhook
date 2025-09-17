@@ -13,20 +13,31 @@ def get_outdoor_temp(zip="28348"):
     )
     return r.json()["main"]["temp"]
 
-def set_thermostat(mode, temp):
+def set_thermostat(mode, temp_f):
     devices = seam.devices.list()
     sensi = next((d for d in devices if d.nickname == "SensiHanover"), None)
     if sensi is None:
         return {"error": "Thermostat not found"}
 
-    seam.devices.actions.execute(
-        device_id=sensi.device_id,
-        action_type="thermostat.set_temperature",
-        params={
-            "temperature_fahrenheit": temp,
-            "hvac_mode": mode # "cool", "heat", "auto", or "off"
-        }
-    )
+    temp_c = (temp_f - 32) * 5.0 / 9.0
+
+    if mode == "cool":
+        seam.devices.thermostats.set_cooling_set_point(
+            device_id=sensi.device_id,
+            cooling_set_point_celsius=temp_c
+        )
+    elif mode == "heat":
+        seam.devices.thermostats.set_heating_set_point(
+            device_id=sensi.device_id,
+            heating_set_point_celsius=temp_c
+        )
+    elif mode == "off":
+        seam.devices.thermostats.set_mode(
+            device_id=sensi.device_id,
+            hvac_mode="off"
+        )
+    else:
+        return {"error": f"Unsupported mode: {mode}"}
 
 
 @app.route("/adjust-temp", methods=["POST"])
@@ -71,10 +82,8 @@ def adjust_temp():
             set_thermostat("cool", 77)
         elif temp <= 65:
             set_thermostat("heat", 65)
+        else:
+            set_thermostat("off", 0)
         return {"status": "checkout_adjusted"}
 
     return {"status": "no_action"}
-
-
-
-
