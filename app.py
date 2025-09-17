@@ -19,7 +19,7 @@ def set_thermostat(mode, temp):
     if sensi is None:
         return {"error": "Thermostat not found"}
 
-    seam.action.execute(
+    seam.actions.execute(
         device_id=sensi.device_id,
         action_type="thermostat.set_temperature",
         params={
@@ -73,5 +73,6 @@ def adjust_temp():
         return {"status": "checkout_adjusted"}
 
     return {"status": "no_action"}
+
 
 
