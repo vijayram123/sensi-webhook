@@ -1,6 +1,7 @@
 flask
 gunicorn
-seamapi
+seam
 gspread
 oauth2client
 requests
+
