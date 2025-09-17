@@ -19,10 +19,13 @@ def set_thermostat(mode, temp):
     if sensi is None:
         return {"error": "Thermostat not found"}
 
-    seam.thermostats.set_temperature(
+    seam.action.execute(
         device_id=sensi.device_id,
-        temperature_fahrenheit=temp,
-        hvac_mode=mode  # must be "cool", "heat", "off", or "auto"
+        action_type="thermostat.set_temperature",
+        params={
+            "temperature_fahrenheit": temp,
+            "hvac_mode": mode  # "cool", "heat", "auto", or "off"
+        }
     )
 
 @app.route("/adjust-temp", methods=["POST"])
@@ -70,4 +73,5 @@ def adjust_temp():
         return {"status": "checkout_adjusted"}
 
     return {"status": "no_action"}
+
 
