@@ -1,10 +1,11 @@
 from flask import Flask, request
-import gspread, seam, requests, os
+import gspread, requests, os
+from seam import Seam
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 app = Flask(__name__)
-seam = seam.Client(api_key=os.getenv("SEAM_API_KEY"))
+seam = Seam(api_key=os.getenv("SEAM_API_KEY"))
 
 def get_outdoor_temp(zip="28348"):
     r = requests.get(
@@ -15,6 +16,7 @@ def get_outdoor_temp(zip="28348"):
 def set_thermostat(mode, temp):
     devices = seam.devices.list()
     sensi = next(d for d in devices if d["device_type"] == "sensi_thermostat")
+
     seam.thermostats.set_temperature(
         device_id=sensi["device_id"],
         temperature_fahrenheit=temp,
@@ -62,5 +64,3 @@ def adjust_temp():
         return {"status": "checkout_adjusted"}
 
     return {"status": "no_action"}
-
-
