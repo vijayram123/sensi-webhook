@@ -1,0 +1,6 @@
+flask
+seamapi
+requests
+gspread
+oauth2client
+gunicorn
