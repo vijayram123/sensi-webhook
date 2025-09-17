@@ -15,7 +15,10 @@ def get_outdoor_temp(zip="28348"):
 
 def set_thermostat(mode, temp):
     devices = seam.devices.list()
-    sensi = next(d for d in devices if d["nickname"] == "SensiHanover")
+    sensi = next((d for d in devices if d.nickname == "SensiHanover"), None)
+    if sensi is None:
+        return {"error": "Thermostat not found"}
+
 
     seam.thermostats.set_temperature(
         device_id=sensi["device_id"],
@@ -69,5 +72,6 @@ def adjust_temp():
         return {"status": "checkout_adjusted"}
 
     return {"status": "no_action"}
+
 
 
