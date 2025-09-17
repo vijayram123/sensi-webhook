@@ -47,7 +47,7 @@ def log_action_to_sheet(action_type, outdoor_temp, mode, setpoint, notes):
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
     client = gspread.authorize(creds)
-    sheet = client.open("sensiwebhooklogs").sheet1
+    log_sheet = client.open("sensiwebhooklogs").sheet1
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_row = [timestamp, action_type, outdoor_temp, mode, setpoint if setpoint is not None else "", notes]
@@ -109,5 +109,6 @@ def adjust_temp():
 
     log_action_to_sheet("none", temp, "none", None, "no_action_taken")
     return jsonify({"status": "no_action"})
+
 
 
