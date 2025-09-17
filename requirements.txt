@@ -1,6 +1,6 @@
 flask
+gunicorn
 seamapi
-requests
 gspread
 oauth2client
-gunicorn
+requests
