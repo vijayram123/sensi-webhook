@@ -22,21 +22,28 @@ def set_thermostat(mode, temp_f):
     dev = seam.devices.get(device_id=sensi.device_id)
 
     if mode.lower() == "cool" and getattr(dev, "can_hvac_cool", False):
-        return seam.thermostats.cool(
+        resp = seam.thermostats.cool(
             device_id=sensi.device_id,
             cooling_set_point_fahrenheit=temp_f
         )
     elif mode.lower() == "heat" and getattr(dev, "can_hvac_heat", False):
-        return seam.thermostats.heat(
+        resp = seam.thermostats.heat(
             device_id=sensi.device_id,
             heating_set_point_fahrenheit=temp_f
         )
     elif mode.lower() == "off" and getattr(dev, "can_turn_off_hvac", False):
-        return seam.thermostats.off(
-            device_id=sensi.device_id
-        )
+        resp = seam.thermostats.off(device_id=sensi.device_id)
     else:
         return {"error": f"Unsupported mode '{mode}' or missing capability"}
+
+    # normalize response to dict (so Flask can jsonify)
+    if hasattr(resp, "dict"):
+        return resp.dict()
+    elif hasattr(resp, "model_dump"):
+        return resp.model_dump()
+    else:
+        return {"result": str(resp)}
+
 
 @app.route("/adjust-temp", methods=["POST"])
 def adjust_temp():
@@ -79,4 +86,5 @@ def adjust_temp():
         return {"status": "checkout_adjusted", "detail": resp}
 
     return {"status": "no_action"}
+
 
