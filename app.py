@@ -4,7 +4,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 app = Flask(__name__)
-seam = seamapi.Client(api_key=os.getenv("SEAM_API_KEY"))
+seam = seam.Client(api_key=os.getenv("SEAM_API_KEY"))
 
 def get_outdoor_temp(zip="28348"):
     r = requests.get(
@@ -62,4 +62,5 @@ def adjust_temp():
         return {"status": "checkout_adjusted"}
 
     return {"status": "no_action"}
+
 
