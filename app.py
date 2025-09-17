@@ -19,26 +19,24 @@ def set_thermostat(mode, temp_f):
     if sensi is None:
         return {"error": "Thermostat not found"}
 
-    temp_c = (temp_f - 32) * 5.0 / 9.0
+    dev = seam.devices.get(device_id=sensi.device_id)
 
-    if mode == "cool":
-        seam.devices.thermostats.set_cooling_set_point(
+    if mode.lower() == "cool" and getattr(dev, "can_hvac_cool", False):
+        return seam.thermostats.cool(
             device_id=sensi.device_id,
-            cooling_set_point_celsius=temp_c
+            cooling_set_point_fahrenheit=temp_f
         )
-    elif mode == "heat":
-        seam.devices.thermostats.set_heating_set_point(
+    elif mode.lower() == "heat" and getattr(dev, "can_hvac_heat", False):
+        return seam.thermostats.heat(
             device_id=sensi.device_id,
-            heating_set_point_celsius=temp_c
+            heating_set_point_fahrenheit=temp_f
         )
-    elif mode == "off":
-        seam.devices.thermostats.set_mode(
-            device_id=sensi.device_id,
-            hvac_mode="off"
+    elif mode.lower() == "off" and getattr(dev, "can_turn_off_hvac", False):
+        return seam.thermostats.off(
+            device_id=sensi.device_id
         )
     else:
-        return {"error": f"Unsupported mode: {mode}"}
-
+        return {"error": f"Unsupported mode '{mode}' or missing capability"}
 
 @app.route("/adjust-temp", methods=["POST"])
 def adjust_temp():
@@ -50,40 +48,35 @@ def adjust_temp():
     today = datetime.today().date()
     rows = sheet.get_all_records()
 
-    # Filter only accepted reservations
     accepted_rows = [r for r in rows if r.get("Status", "").strip().lower() == "accepted"]
 
     def parse_date(date_str):
-        """Extract date portion before space and convert to date object."""
         date_part = date_str.strip().split(" ")[0]
         return datetime.strptime(date_part, "%Y-%m-%d").date()
 
-    checkin_today = any(
-        parse_date(r["Check-in"]) == today
-        for r in accepted_rows
-    )
-    checkout_today = any(
-        parse_date(r["Check-out"]) == today
-        for r in accepted_rows
-    )
+    checkin_today = any(parse_date(r["Check-in"]) == today for r in accepted_rows)
+    checkout_today = any(parse_date(r["Check-out"]) == today for r in accepted_rows)
     same_day_turnover = checkin_today and checkout_today
 
     temp = get_outdoor_temp()
 
     if checkin_today:
         if temp >= 75:
-            set_thermostat("cool", 73)
+            resp = set_thermostat("cool", 73)
         elif temp <= 65:
-            set_thermostat("heat", 70)
-        return {"status": "checkin_adjusted"}
+            resp = set_thermostat("heat", 70)
+        else:
+            resp = {"status":"no_temp_threshold_met_for_checkin"}
+        return {"status": "checkin_adjusted", "detail": resp}
 
     elif checkout_today and not same_day_turnover:
         if temp >= 75:
-            set_thermostat("cool", 77)
+            resp = set_thermostat("cool", 77)
         elif temp <= 65:
-            set_thermostat("heat", 65)
+            resp = set_thermostat("heat", 65)
         else:
-            set_thermostat("off", 0)
-        return {"status": "checkout_adjusted"}
+            resp = set_thermostat("off", None)
+        return {"status": "checkout_adjusted", "detail": resp}
 
     return {"status": "no_action"}
+
