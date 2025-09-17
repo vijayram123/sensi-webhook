@@ -4,4 +4,3 @@ seam
 gspread
 oauth2client
 requests
-
