@@ -1,5 +1,5 @@
 from flask import Flask, request
-import gspread, seamapi, requests, os
+import gspread, seam, requests, os
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
@@ -62,3 +62,4 @@ def adjust_temp():
         return {"status": "checkout_adjusted"}
 
     return {"status": "no_action"}
+
