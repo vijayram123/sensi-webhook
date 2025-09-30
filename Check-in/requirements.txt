@@ -1,0 +1,6 @@
+flask
+gunicorn
+seam
+gspread
+oauth2client
+requests
